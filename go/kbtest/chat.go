@@ -255,6 +255,11 @@ func (m *TlfMock) EphemeralDecryptionKey(ctx context.Context, tlfName string, tl
 	return keybase1.TeamEk{}, nil
 }
 
+func (m *TlfMock) DeviceKIDs(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) ([]keybase1.KID, error) {
+	panic("not implemented")
+}
+
 func (m *TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
 	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {

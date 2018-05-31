@@ -1166,6 +1166,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		if version == chat1.MessageBoxedVersion_V2 {
 			version = chat1.MessageBoxedVersion_V3
 		}
+
+		kids, err := CtxKeyFinder(ctx, b.G()).DeviceKIDs(
+			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+		if err != nil {
+			return nil, err
+		}
+		b.G().Log.Error("JACK GOT %d KEYS", len(kids))
 	}
 
 	err = b.attachMerkleRoot(ctx, &msg, version)

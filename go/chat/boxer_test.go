@@ -1458,6 +1458,11 @@ func (k *KeyFinderMock) EphemeralKeyForDecryption(ctx context.Context, tlfName s
 	panic("unimplemented")
 }
 
+func (k *KeyFinderMock) DeviceKIDs(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) ([]keybase1.KID, error) {
+	panic("unimplemented")
+}
+
 func (k *KeyFinderMock) SetNameInfoSourceOverride(ni types.NameInfoSource) {}
 
 func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) *chat1.MessageBoxed {

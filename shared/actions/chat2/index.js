@@ -1230,13 +1230,12 @@ const previewConversationFindExisting = (
       )
     }
   }
-  const you = state.config.username || ''
-
   let params
   let users
 
   // we handled participants or teams
   if (participants) {
+    const you = state.config.username || ''
     const toFind = I.Set(participants).add(you)
     params = {tlfName: toFind.join(',')}
     users = I.Set(participants)

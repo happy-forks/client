@@ -1189,7 +1189,7 @@ const previewConversationAfterFindExisting = (
   // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
   if (isTeam) {
     return Saga.put(
-      Chat2Gen.createPreviewKnownTeamConversation({
+      Chat2Gen.createSelectOrPreviewTeamConversation({
         channelname: action.payload.channelname || '',
         conversationIDKey: existingConversationIDKey,
         teamname: action.payload.teamname || '',
@@ -1282,8 +1282,8 @@ const previewConversationFindExisting = (
   return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown])
 }
 
-const previewKnownTeamConversation = (
-  action: Chat2Gen.PreviewKnownTeamConversationPayload,
+const selectOrPreviewTeamConversation = (
+  action: Chat2Gen.SelectOrPreviewTeamConversationPayload,
   state: TypedState
 ) => {
   const {conversationIDKey} = action.payload
@@ -1922,7 +1922,7 @@ const changePendingMode = (
   action:
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.FindAndPreviewConversationPayload
-    | Chat2Gen.PreviewKnownTeamConversationPayload,
+    | Chat2Gen.SelectOrPreviewTeamConversationPayload,
   state: TypedState
 ) => {
   switch (action.type) {
@@ -1937,7 +1937,7 @@ const changePendingMode = (
           pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
         })
       )
-    case Chat2Gen.previewKnownTeamConversation:
+    case Chat2Gen.selectOrPreviewTeamConversation:
       // We're selecting a team so we never want to show the row.
       return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
     case Chat2Gen.selectConversation: {
@@ -2151,7 +2151,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     previewConversationFindExisting,
     previewConversationAfterFindExisting
   )
-  yield Saga.safeTakeEveryPure(Chat2Gen.previewKnownTeamConversation, previewKnownTeamConversation)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectOrPreviewTeamConversation, selectOrPreviewTeamConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
@@ -2204,7 +2204,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.selectConversation, Chat2Gen.findAndPreviewConversation, Chat2Gen.previewKnownTeamConversation],
+    [
+      Chat2Gen.selectConversation,
+      Chat2Gen.findAndPreviewConversation,
+      Chat2Gen.selectOrPreviewTeamConversation,
+    ],
     changePendingMode
   )
 

@@ -142,6 +142,30 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['pathItems', action.payload.path],
         pathItem => (pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem)
       )
+    case FsGen.newFolderRow:
+      const parentPathItem = state.pathItems.get(action.payload.parentPath, Constants.makeUnknownPathItem())
+      if (parentPathItem.type !== 'folder') {
+        console.warn(`bad parentPath: ${Types.pathToString(action.payload.parentPath)}`)
+        return state
+      }
+      let newFolderName = 'New Folder'
+      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+        newFolderName = `New Folder ${i}`
+      }
+      return state
+        .mergeIn(
+          ['pathItems'],
+          [
+            [
+              Types.pathToString(Types.pathConcat(action.payload.parentPath, newFolderName)),
+              Constants.makeNewPathItem({
+                name: newFolderName,
+              }),
+            ],
+          ]
+        )
+        .mergeIn(['pathItems', action.payload.parentPath, 'children'], [newFolderName])
+
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
     case FsGen.download:

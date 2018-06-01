@@ -97,6 +97,9 @@
       "path": "Types.Path",
       "errorText": "string"
     },
+    "newFolderRow": {
+      "parentPath": "Types.Path"
+    },
 
     "setupFSHandlers": {},
 

@@ -24,6 +24,7 @@ export const clearOrdinals = 'chat2:clearOrdinals'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const findAndPreviewConversation = 'chat2:findAndPreviewConversation'
+export const findAndSelectTeamGeneral = 'chat2:findAndSelectTeamGeneral'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -127,9 +128,12 @@ type _DesktopNotificationPayload = $ReadOnly<{|
   body: string,
 |}>
 type _FindAndPreviewConversationPayload = $ReadOnly<{|
-  participants?: Array<string>,
-  teamname?: string,
-  reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView',
+  participants: Array<string>,
+  reason: 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'memberView',
+|}>
+type _FindAndSelectTeamGeneralPayload = $ReadOnly<{|
+  teamname: string,
+  reason: 'files' | 'teamHeader' | 'convertAdHoc',
 |}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -335,6 +339,10 @@ export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPol
  */
 export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
 /**
+ * Find the #general channel for the given team, then select it.
+ */
+export const createFindAndSelectTeamGeneral = (payload: _FindAndSelectTeamGeneralPayload) => ({error: false, payload, type: findAndSelectTeamGeneral})
+/**
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
@@ -435,6 +443,7 @@ export type ClearOrdinalsPayload = $Call<typeof createClearOrdinals, _ClearOrdin
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type FindAndPreviewConversationPayload = $Call<typeof createFindAndPreviewConversation, _FindAndPreviewConversationPayload>
+export type FindAndSelectTeamGeneralPayload = $Call<typeof createFindAndSelectTeamGeneral, _FindAndSelectTeamGeneralPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
@@ -508,6 +517,7 @@ export type Actions =
   | CreateConversationPayload
   | DesktopNotificationPayload
   | FindAndPreviewConversationPayload
+  | FindAndSelectTeamGeneralPayload
   | HandleSeeingExplodingMessagesPayload
   | InboxRefreshPayload
   | JoinConversationPayload

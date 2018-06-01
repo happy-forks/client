@@ -139,7 +139,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     if (participants) {
       dispatch(Chat2Gen.createFindAndPreviewConversation({participants, reason: 'files'}))
     } else if (teamname) {
-      dispatch(Chat2Gen.createFindAndPreviewConversation({teamname, reason: 'files'}))
+      dispatch(Chat2Gen.createFindAndSelectTeamGeneral({teamname, reason: 'files'}))
     }
   },
 })

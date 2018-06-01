@@ -1168,9 +1168,7 @@ const previewConversationAfterFindExisting = (
 
   let existingConversationIDKey = Constants.noConversationIDKey
 
-  const isTeam =
-    action.type === Chat2Gen.findAndPreviewConversation &&
-    (action.payload.teamname || action.payload.channelname)
+  const isTeam = action.type === Chat2Gen.findAndPreviewConversation && action.payload.teamname
   if (results && results.conversations && results.conversations.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
@@ -1190,7 +1188,7 @@ const previewConversationAfterFindExisting = (
   if (isTeam) {
     return Saga.put(
       Chat2Gen.createSelectOrPreviewTeamConversation({
-        channelname: action.payload.channelname || '',
+        channelname: 'general',
         conversationIDKey: existingConversationIDKey,
         teamname: action.payload.teamname || '',
         reason: 'previewResolved',
@@ -1216,12 +1214,10 @@ const previewConversationFindExisting = (
 ) => {
   let participants
   let teamname
-  let channelname
   let conversationIDKey
   if (action.type === Chat2Gen.findAndPreviewConversation) {
     participants = action.payload.participants
     teamname = action.payload.teamname
-    channelname = action.payload.channelname || 'general'
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (!action.payload.fromSearch) {
       return
@@ -1251,7 +1247,7 @@ const previewConversationFindExisting = (
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
       tlfName: teamname,
-      topicName: channelname,
+      topicName: 'general',
     }
   } else if (conversationIDKey) {
     // we can skip the call if we have a conversationid already

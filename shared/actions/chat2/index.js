@@ -1140,13 +1140,13 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   ])
 }
 
-// Start a conversation, or select an existing one
-const previewConversationFindExisting = (
-  action: Chat2Gen.FindAndPreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+// Start a pending conversation
+const startPendingConversationFindExisting = (
+  action: Chat2Gen.StartPendingConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
 ) => {
   let participants
-  if (action.type === Chat2Gen.findAndPreviewConversation) {
+  if (action.type === Chat2Gen.startPendingConversation) {
     participants = action.payload.participants
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (!action.payload.fromSearch) {
@@ -1189,17 +1189,17 @@ const previewConversationFindExisting = (
   return Saga.sequentially([markPendingWaiting, makeCall, passUsersDown])
 }
 
-const previewConversationAfterFindExisting = (
-  _fromPreviewConversation,
-  action: Chat2Gen.FindAndPreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+const startPendingConversationAfterFindExisting = (
+  _fromStartPendingConversation,
+  action: Chat2Gen.StartPendingConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
 ) => {
   // TODO make a sequentially that uses an object map and not all this array nonsense
-  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 3) {
+  if (!_fromStartPendingConversation || _fromStartPendingConversation.length !== 3) {
     return
   }
-  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
-  const users: Array<string> = _fromPreviewConversation[2]
+  const results: ?RPCChatTypes.FindConversationsLocalRes = _fromStartPendingConversation[1]
+  const users: Array<string> = _fromStartPendingConversation[2]
 
   // still looking for this result?
   if (
@@ -1648,7 +1648,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
   // remove all bad people
   const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
   return Saga.put(
-    Chat2Gen.createFindAndPreviewConversation({
+    Chat2Gen.createStartPendingConversation({
       participants: goodParticipants.toArray(),
       reason: 'resetChatWithoutThem',
     })
@@ -1913,13 +1913,13 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
 const changePendingMode = (
   action:
     | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.FindAndPreviewConversationPayload
+    | Chat2Gen.StartPendingConversationPayload
     | Chat2Gen.FindAndSelectTeamGeneralPayload
     | Chat2Gen.SelectOrPreviewTeamConversationPayload,
   state: TypedState
 ) => {
   switch (action.type) {
-    case Chat2Gen.findAndPreviewConversation:
+    case Chat2Gen.startPendingConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
       if (action.payload.reason === 'convertAdHoc') {
         return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
@@ -2143,9 +2143,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.findAndPreviewConversation, Chat2Gen.setPendingConversationUsers],
-    previewConversationFindExisting,
-    previewConversationAfterFindExisting
+    [Chat2Gen.startPendingConversation, Chat2Gen.setPendingConversationUsers],
+    startPendingConversationFindExisting,
+    startPendingConversationAfterFindExisting
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.findAndSelectTeamGeneral, findTeamGeneral, selectTeamGeneral)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectOrPreviewTeamConversation, selectOrPreviewTeamConversation)
@@ -2203,7 +2203,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [
       Chat2Gen.selectConversation,
-      Chat2Gen.findAndPreviewConversation,
+      Chat2Gen.startPendingConversation,
       Chat2Gen.findAndSelectTeamGeneral,
       Chat2Gen.selectOrPreviewTeamConversation,
     ],

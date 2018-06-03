@@ -19,6 +19,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
       })
     case FsGen.folderListLoaded: {
+      let toRemove = []
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path)
 
@@ -38,6 +39,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
+
+        toRemove = toRemove.concat(
+          original.children
+            .filter(child => !item.children.includes(child))
+            .toArray()
+            .map(name => Types.pathConcat(path, name))
+        )
+        console.log(`Removing entries in state.fs.pathItems: ${JSON.stringify(toRemove)}`)
         // Since both `folderListLoaded` and `favoritesLoaded` can change
         // `pathItems`, we need to make sure that neither one clobbers the
         // other's work.
@@ -47,6 +56,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('favoriteChildren', original.favoriteChildren)
       })
       const s = state
+        .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
       return s
@@ -158,13 +168,29 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           [
             [
               Types.pathToString(Types.pathConcat(action.payload.parentPath, newFolderName)),
-              Constants.makeNewPathItem({
+              Constants.makeNewFolderPathItem({
                 name: newFolderName,
               }),
             ],
           ]
         )
         .mergeIn(['pathItems', action.payload.parentPath, 'children'], [newFolderName])
+    case FsGen.newFolderRowClear:
+      const pathItem = state.pathItems.get(action.payload.path)
+      if (!pathItem || pathItem.type !== 'new-folder') {
+        return state
+      }
+      return (
+        state
+          // $FlowFixMe
+          .removeIn(['pathItems', pathItems => pathItems.remove(action.payload.path)])
+          .removeIn(['pathItems', Types.getPathParent(action.payload.path), 'children', pathItem.name])
+      )
+    case FsGen.newFolderFailed:
+      return state.updateIn(
+        ['pathItems', action.payload.path],
+        pathItem => (pathItem && pathItem.type === 'new-folder' ? pathItem.set('status', 'failed') : pathItem)
+      )
 
     case FsGen.filePreviewLoad:
     case FsGen.cancelTransfer:
@@ -183,6 +209,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fileActionPopup:
     case FsGen.openFinderPopup:
     case FsGen.openPathItem:
+    case FsGen.newFolder:
       return state
     default:
       /*::

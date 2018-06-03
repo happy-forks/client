@@ -19,7 +19,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
       })
     case FsGen.folderListLoaded: {
-      let toRemove = []
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path)
 
@@ -39,14 +38,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
-
-        toRemove = toRemove.concat(
-          original.children
-            .filter(child => !item.children.includes(child))
-            .toArray()
-            .map(name => Types.pathConcat(path, name))
-        )
-        console.log(`Removing entries in state.fs.pathItems: ${JSON.stringify(toRemove)}`)
         // Since both `folderListLoaded` and `favoritesLoaded` can change
         // `pathItems`, we need to make sure that neither one clobbers the
         // other's work.
@@ -56,7 +47,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('favoriteChildren', original.favoriteChildren)
       })
       const s = state
-        .set('pathItems', state.pathItems.filter((item, path) => !toRemove.includes(path)))
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
       return s

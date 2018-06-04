@@ -150,6 +150,12 @@ func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.
 	return pukGen, pukSeed, err
 }
 
+type UserHasNoAccountsError struct{}
+
+func (e UserHasNoAccountsError) Error() string {
+	return "logged-in user has no wallet accounts"
+}
+
 type fetchRes struct {
 	libkb.AppStatusEmbed
 	EncryptedB64 string `json:"encrypted"`
@@ -169,7 +175,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 		switch keybase1.StatusCode(err.Code) {
 		case keybase1.StatusCode_SCNotFound:
 			g.Log.CDebugf(ctx, "replacing error: %v", err)
-			return res, 0, errors.New("logged-in user has no wallet accounts")
+			return res, 0, UserHasNoAccountsError{}
 		}
 	default:
 		return res, 0, err
@@ -443,7 +449,7 @@ type disclaimerResult struct {
 	AcceptedDisclaimer bool `json:"accepted_disclaimer"`
 }
 
-func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.UserSettings, err error) {
+func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret bool, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/disclaimer",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -452,9 +458,9 @@ func GetUserSettings(ctx context.Context, g *libkb.GlobalContext) (res stellar1.
 	var apiRes disclaimerResult
 	err = g.API.GetDecode(apiArg, &apiRes)
 	if err != nil {
-		return res, err
+		return ret, err
 	}
-	return stellar1.UserSettings{AcceptedDisclaimer: apiRes.AcceptedDisclaimer}, nil
+	return apiRes.AcceptedDisclaimer, nil
 }
 
 func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {

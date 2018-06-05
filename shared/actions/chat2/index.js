@@ -1919,10 +1919,6 @@ const changePendingMode = (
 ) => {
   switch (action.type) {
     case Chat2Gen.startPendingConversation:
-      // We decided to make a team instead of start a convo, so no resolution will take place
-      if (action.payload.reason === 'convertAdHoc') {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-      }
       // Otherwise, we're starting a chat with some users.
       return Saga.put(
         Chat2Gen.createSetPendingMode({

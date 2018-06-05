@@ -396,6 +396,20 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 	}
 }
 
+type PaymentDetails struct {
+	Summary  PaymentSummary `codec:"summary" json:"summary"`
+	Memo     string         `codec:"memo" json:"memo"`
+	MemoType string         `codec:"memoType" json:"memoType"`
+}
+
+func (o PaymentDetails) DeepCopy() PaymentDetails {
+	return PaymentDetails{
+		Summary:  o.Summary.DeepCopy(),
+		Memo:     o.Memo,
+		MemoType: o.MemoType,
+	}
+}
+
 type AccountDetails struct {
 	AccountID     AccountID `codec:"accountID" json:"accountID"`
 	Seqno         string    `codec:"seqno" json:"seqno"`
@@ -450,7 +464,7 @@ type RecentPaymentsArg struct {
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 
-type PaymentDetailArg struct {
+type PaymentDetailsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 	TxID   string               `codec:"txID" json:"txID"`
 }
@@ -500,7 +514,7 @@ type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
-	PaymentDetail(context.Context, PaymentDetailArg) (PaymentSummary, error)
+	PaymentDetails(context.Context, PaymentDetailsArg) (PaymentDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
@@ -564,18 +578,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"paymentDetail": {
+			"paymentDetails": {
 				MakeArg: func() interface{} {
-					ret := make([]PaymentDetailArg, 1)
+					ret := make([]PaymentDetailsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PaymentDetailArg)
+					typedArgs, ok := args.(*[]PaymentDetailsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PaymentDetailArg)(nil), args)
+						err = rpc.NewTypeError((*[]PaymentDetailsArg)(nil), args)
 						return
 					}
-					ret, err = i.PaymentDetail(ctx, (*typedArgs)[0])
+					ret, err = i.PaymentDetails(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -742,8 +756,8 @@ func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsAr
 	return
 }
 
-func (c RemoteClient) PaymentDetail(ctx context.Context, __arg PaymentDetailArg) (res PaymentSummary, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetail", []interface{}{__arg}, &res)
+func (c RemoteClient) PaymentDetails(ctx context.Context, __arg PaymentDetailsArg) (res PaymentDetails, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetails", []interface{}{__arg}, &res)
 	return
 }
 

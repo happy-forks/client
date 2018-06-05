@@ -391,6 +391,24 @@
     },
     {
       "type": "record",
+      "name": "PaymentDetails",
+      "fields": [
+        {
+          "type": "PaymentSummary",
+          "name": "summary"
+        },
+        {
+          "type": "string",
+          "name": "memo"
+        },
+        {
+          "type": "string",
+          "name": "memoType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AccountDetails",
       "fields": [
         {
@@ -479,7 +497,7 @@
         "items": "PaymentSummary"
       }
     },
-    "paymentDetail": {
+    "paymentDetails": {
       "request": [
         {
           "name": "caller",
@@ -490,7 +508,7 @@
           "type": "string"
         }
       ],
-      "response": "PaymentSummary"
+      "response": "PaymentDetails"
     },
     "accountSeqno": {
       "request": [
